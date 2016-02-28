@@ -1,42 +1,50 @@
 /**
  * Created by benjamindavidpinter on 2/27/16.
  */
-public class Monkey {
+public class Monkey implements Runnable{
     private String currentWord;
     String name = "";
     private CharacterFactory charFact;
-    private boolean isFound = false;
+    private boolean wordHasBeenFound = false;
     private int guesses = 0;
     private int wordsPerMinute = 0;
+    private MonkeyTimer myTimer = new MonkeyTimer();
 
     public Monkey(String name, int wordsPerMinute){
         this.name = name;
         this.wordsPerMinute = wordsPerMinute;
     }
 
+    public void run(){
+        beginGuessing();
+    }
+
     public void getNewWord(String newWord){
         this.currentWord = newWord.toLowerCase();
-        System.out.println("I have been assigned the word '" + this.currentWord + "'");
-        isFound = false;
+        System.out.printf("%n %s has been assigned the word '" + this.currentWord + "'", name);
+        wordHasBeenFound = false;
     }
 
     public void beginGuessing(){
-        System.out.println("Smacking some keys...");
-        String guessedWord = getNewWord();
-        while(!isFound){
+        String guessedWord = guessNewWord();
+        while(!wordHasBeenFound){
             if(guessedWord.equalsIgnoreCase(currentWord)){
-                isFound = true;
-                System.out.println("Found '" + currentWord + "' after " + guesses + " guesses!");
-                resolveTimeToFindWord();
+                wordHasBeenFound = true;
+                System.out.printf("It took %s, %.2f Years, %.2f Days, %.2f Hours, and %.2f Minutes to find '%s'.%n", name
+                        , myTimer.years, myTimer.days, myTimer.hours, myTimer.minutes, currentWord);
             }
             else {
-                guessedWord = getNewWord();
+                guessedWord = guessNewWord();
+            }
+            if (guesses % wordsPerMinute == 0){
+                myTimer.addMinute();
+                guesses = 0;
             }
         }
 
     }
 
-    private String getNewWord(){
+    private String guessNewWord(){
         char[] guessedWord = new char[currentWord.length()];
         for(int i = 0; i < currentWord.length(); i++){
             guessedWord[i] = charFact.getRandomCharacter();
@@ -45,13 +53,5 @@ public class Monkey {
         return new String(guessedWord);
     }
 
-    private void resolveTimeToFindWord(){
 
-        Double minutes = ((double)guesses / (double)wordsPerMinute);
-        Double hours = minutes / 60;
-        minutes = minutes % 60;
-        Double days = hours / 24;
-        hours = hours % 24;
-        System.out.format("%.0f Days, %.0f hours, %.0f minutes spent.", days, hours, minutes);
-    }
 }
